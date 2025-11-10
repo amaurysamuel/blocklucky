@@ -6,10 +6,10 @@ export const HeroSection = () => {
   return (
     <section className="relative min-h-[600px] flex items-center justify-center overflow-hidden">
       <div 
-        className="absolute inset-0 bg-cover bg-center opacity-20"
+        className="absolute inset-0 bg-cover bg-center opacity-20 pointer-events-none select-none"
         style={{ backgroundImage: `url(${heroImage})` }}
       />
-      <div className="absolute inset-0 bg-gradient-hero" />
+      <div className="absolute inset-0 bg-gradient-hero pointer-events-none select-none" />
       
       <div className="container mx-auto px-4 relative z-10 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/20 border border-accent mb-6">
