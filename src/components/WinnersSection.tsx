@@ -11,7 +11,7 @@ const recentWinners = [
 
 export const WinnersSection = () => {
   return (
-    <section className="py-20 bg-muted/30">
+    <section id="winners" className="py-20 bg-muted/30">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <Trophy className="w-12 h-12 text-secondary mx-auto mb-4" />
@@ -54,6 +54,7 @@ export const WinnersSection = () => {
                     variant="ghost" 
                     size="icon"
                     className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => window.open('https://etherscan.io', '_blank', 'noopener,noreferrer')}
                   >
                     <ExternalLink className="w-4 h-4" />
                   </Button>
@@ -64,7 +65,7 @@ export const WinnersSection = () => {
         </div>
         
         <div className="text-center mt-8">
-          <Button variant="outline" size="lg">
+          <Button variant="outline" size="lg" onClick={() => window.open('https://etherscan.io', '_blank', 'noopener,noreferrer')}>
             View All Winners on Blockchain
           </Button>
         </div>

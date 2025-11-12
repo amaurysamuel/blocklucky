@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Check, Lock, Wallet, Zap } from "lucide-react";
+import { toast } from "sonner";
 
 export const ParticipationSection = () => {
   return (
-    <section className="py-20 bg-background">
+    <section id="participation" className="py-20 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h3 className="text-4xl font-bold mb-4">How to Participate</h3>
@@ -52,7 +53,7 @@ export const ParticipationSection = () => {
           <p className="text-primary-foreground/80 mb-6">
             Next draw in: <span className="font-semibold">2 days 14h 32m</span>
           </p>
-          <Button variant="gold" size="lg" className="text-lg px-12">
+          <Button variant="gold" size="lg" className="text-lg px-12" onClick={() => toast.info('Simulation: achat de ticket à venir')}>
             Buy Your Ticket Now
           </Button>
         </Card>

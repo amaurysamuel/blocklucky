@@ -3,6 +3,9 @@ import { Shield, TrendingUp, Users } from "lucide-react";
 import heroImage from "@/assets/hero-lottery.jpg";
 
 export const HeroSection = () => {
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   return (
     <section className="relative min-h-[600px] flex items-center justify-center overflow-hidden">
       <div 
@@ -30,10 +33,10 @@ export const HeroSection = () => {
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-          <Button variant="gold" size="lg" className="text-lg px-8">
+          <Button variant="gold" size="lg" className="text-lg px-8" onClick={() => scrollTo('participation')}>
             Participate Now
           </Button>
-          <Button variant="outline" size="lg" className="text-lg px-8">
+          <Button variant="outline" size="lg" className="text-lg px-8" onClick={() => scrollTo('winners')}>
             Learn More
           </Button>
         </div>
