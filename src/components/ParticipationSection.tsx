@@ -1,9 +1,35 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Check, Lock, Wallet, Zap } from "lucide-react";
 import { toast } from "sonner";
+import { TicketPurchaseDialog } from "./TicketPurchaseDialog";
+import { LotteryDrawDialog } from "./LotteryDrawDialog";
 
 export const ParticipationSection = () => {
+  const [purchaseOpen, setPurchaseOpen] = useState(false);
+  const [drawOpen, setDrawOpen] = useState(false);
+  const [ticketCount, setTicketCount] = useState(0);
+
+  const handlePurchase = (quantity: number) => {
+    setTicketCount(prev => prev + quantity);
+    toast.success(`${quantity} ticket${quantity > 1 ? 's' : ''} acheté${quantity > 1 ? 's' : ''} avec succès !`);
+    
+    // Proposer le tirage après 1 seconde
+    setTimeout(() => {
+      toast.info("Voulez-vous lancer le tirage maintenant ?", {
+        action: {
+          label: "Lancer le tirage",
+          onClick: () => setDrawOpen(true)
+        }
+      });
+    }, 1000);
+  };
+
+  const handleDrawComplete = () => {
+    setTicketCount(0);
+  };
+
   return (
     <section id="participation" className="py-20 bg-background">
       <div className="container mx-auto px-4">
@@ -53,11 +79,36 @@ export const ParticipationSection = () => {
           <p className="text-primary-foreground/80 mb-6">
             Next draw in: <span className="font-semibold">2 days 14h 32m</span>
           </p>
-          <Button variant="gold" size="lg" className="text-lg px-12" onClick={() => toast.info('Simulation: achat de ticket à venir')}>
-            Buy Your Ticket Now
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button variant="gold" size="lg" className="text-lg px-12" onClick={() => setPurchaseOpen(true)}>
+              Buy Your Ticket Now
+            </Button>
+            {ticketCount > 0 && (
+              <Button variant="hero" size="lg" className="text-lg px-12" onClick={() => setDrawOpen(true)}>
+                Lancer le Tirage ({ticketCount} ticket{ticketCount > 1 ? 's' : ''})
+              </Button>
+            )}
+          </div>
+          {ticketCount > 0 && (
+            <p className="text-sm text-accent mt-4 animate-fade-in">
+              ✓ Vous possédez {ticketCount} ticket{ticketCount > 1 ? 's' : ''} pour le prochain tirage
+            </p>
+          )}
         </Card>
       </div>
+
+      <TicketPurchaseDialog 
+        open={purchaseOpen} 
+        onOpenChange={setPurchaseOpen}
+        onPurchase={handlePurchase}
+      />
+
+      <LotteryDrawDialog
+        open={drawOpen}
+        onOpenChange={setDrawOpen}
+        ticketCount={ticketCount}
+        onComplete={handleDrawComplete}
+      />
     </section>
   );
 };
