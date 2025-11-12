@@ -2,8 +2,45 @@ import { useState, useEffect } from "react";
 import { BrowserProvider, Contract, parseEther, formatEther } from "ethers";
 import { toast } from "sonner";
 
-// Adresse du contrat de loterie
-const LOTTERY_CONTRACT_ADDRESS = "0xd9145CCE52D386f254917e481eB44e9943F39138";
+// Utilitaire pour récupérer l'adresse du contrat selon le réseau courant
+const getContractAddress = (chainIdHexOrNum: string | number) => {
+  try {
+    const num = typeof chainIdHexOrNum === "string"
+      ? (chainIdHexOrNum.startsWith("0x") ? parseInt(chainIdHexOrNum, 16) : parseInt(chainIdHexOrNum, 10))
+      : chainIdHexOrNum;
+    const key = `VITE_CONTRACT_ADDRESS_${num}` as keyof ImportMetaEnv;
+    // @ts-ignore: dynamic env access
+    const byChain = import.meta.env[key] as string | undefined;
+    if (byChain && byChain.trim()) return byChain.trim();
+  } catch (_) {}
+  const fallback = import.meta.env.VITE_CONTRACT_ADDRESS as string | undefined;
+  return fallback?.trim() || "";
+};
+
+// Helpers réseau
+const normalizeChainId = (id: string | number | null | undefined) => {
+  if (id == null) return "";
+  if (typeof id === "string") {
+    return id.startsWith("0x") ? parseInt(id, 16).toString() : parseInt(id, 10).toString();
+  }
+  return id.toString();
+};
+
+const formatChainName = (idNumStr: string) => {
+  const id = Number(idNumStr);
+  switch (id) {
+    case 1: return "Ethereum Mainnet";
+    case 5: return "Goerli";
+    case 11155111: return "Sepolia";
+    case 137: return "Polygon";
+    case 10: return "OP Mainnet";
+    case 42161: return "Arbitrum One";
+    case 56: return "BNB Chain";
+    case 31337: return "Local (Hardhat)";
+    case 1337: return "Local";
+    default: return `Chain ${id}`;
+  }
+};
 
 export const useWeb3 = () => {
   const [account, setAccount] = useState<string | null>(null);
@@ -43,6 +80,15 @@ export const useWeb3 = () => {
         setAccount(account);
         const provider = new BrowserProvider(eth);
         setProvider(provider);
+        // Vérification basique du RPC: tenter de lire le numéro de bloc
+        try {
+          const chainIdHex: string = await provider.send("eth_chainId", []);
+          const idStr = normalizeChainId(chainIdHex);
+          await provider.getBlockNumber();
+          toast.message(`Connecté au réseau ${formatChainName(idStr)} (chainId ${idStr})`);
+        } catch (rpcErr) {
+          toast.error("Erreur RPC détectée - vérifiez que MetaMask est connecté au bon réseau ou que le nœud est actif.");
+        }
         await updateBalance(account);
       }
     } catch (error) {
@@ -60,6 +106,15 @@ export const useWeb3 = () => {
       setBalance(formatEther(balance));
     } catch (error) {
       console.error("Error getting balance:", error);
+      try {
+        const eth = (window as any).ethereum;
+        const provider = new BrowserProvider(eth);
+        const chainIdHex: string = await provider.send("eth_chainId", []);
+        const idStr = normalizeChainId(chainIdHex);
+        toast.error(`Erreur RPC lors de la lecture du solde - réseau ${formatChainName(idStr)} (chainId ${idStr}). Assurez-vous que MetaMask est sur le bon réseau.`);
+      } catch (_) {
+        toast.error("Erreur RPC lors de la lecture du solde.");
+      }
     }
   };
 
@@ -82,6 +137,15 @@ export const useWeb3 = () => {
       
       const provider = new BrowserProvider(eth);
       setProvider(provider);
+      // Healthcheck RPC
+      try {
+        const chainIdHex: string = await provider.send("eth_chainId", []);
+        const idStr = normalizeChainId(chainIdHex);
+        await provider.getBlockNumber();
+        toast.message(`Connecté au réseau ${formatChainName(idStr)} (chainId ${idStr})`);
+      } catch (rpcErr) {
+        toast.error("Erreur RPC détectée - vérifiez le réseau MetaMask ou votre nœud.");
+      }
       await updateBalance(account);
       
       toast.success(`Wallet connecté: ${account.slice(0, 6)}...${account.slice(-4)}`);
@@ -127,10 +191,19 @@ export const useWeb3 = () => {
 
       const totalPriceStr = (quantity * pricePerTicket).toFixed(6);
 
+      // Résoudre l'adresse du contrat selon le réseau courant
+      const chainIdHex: string = await providerInstance.send("eth_chainId", []);
+      const contractAddress = getContractAddress(chainIdHex);
+      if (!contractAddress) {
+        const idStr = normalizeChainId(chainIdHex);
+        toast.error(`Adresse du contrat introuvable pour ${formatChainName(idStr)} (chainId ${idStr}). Configurez VITE_CONTRACT_ADDRESS_${idStr} ou VITE_CONTRACT_ADDRESS.`);
+        return { success: false };
+      }
+
       toast.info("Confirmation de la transaction dans MetaMask...");
 
       const tx = await signer.sendTransaction({
-        to: LOTTERY_CONTRACT_ADDRESS,
+        to: contractAddress,
         value: parseEther(totalPriceStr),
       });
 
@@ -150,7 +223,16 @@ export const useWeb3 = () => {
       if (error.code === 4001) {
         toast.error("Transaction rejetée par l'utilisateur");
       } else {
-        toast.error(error?.message || "Erreur lors de l'achat");
+        try {
+          const eth = (window as any).ethereum;
+          const provider = new BrowserProvider(eth);
+          const chainIdHex: string = await provider.send("eth_chainId", []);
+          const idStr = normalizeChainId(chainIdHex);
+          const resolvedAddr = getContractAddress(chainIdHex) || "(non configurée)";
+          toast.error(`Erreur RPC lors de l'achat sur ${formatChainName(idStr)} (chainId ${idStr}). Contrat ciblé: ${resolvedAddr}. ${error?.message || ''}`.trim());
+        } catch (_) {
+          toast.error(error?.message || "Erreur lors de l'achat");
+        }
       }
       return { success: false, error };
     }

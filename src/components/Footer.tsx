@@ -1,4 +1,5 @@
 import { Sparkles, Github, Twitter, FileText } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export const Footer = () => {
   return (
@@ -20,18 +21,20 @@ export const Footer = () => {
           <div>
             <h5 className="font-semibold mb-3">About</h5>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-foreground transition-colors">How it Works</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Smart Contract</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">FAQ</a></li>
+              <li><Link to="/about" className="hover:text-foreground transition-colors">About</Link></li>
+              <li><Link to="/how-it-works" className="hover:text-foreground transition-colors">How it Works</Link></li>
+              <li><Link to="/smart-contract" className="hover:text-foreground transition-colors">Smart Contract</Link></li>
+              <li><Link to="/faq" className="hover:text-foreground transition-colors">FAQ</Link></li>
             </ul>
           </div>
           
           <div>
             <h5 className="font-semibold mb-3">Legal</h5>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-foreground transition-colors">Terms of Service</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">GDPR</a></li>
+              <li><Link to="/legal" className="hover:text-foreground transition-colors">Legal Notices</Link></li>
+              <li><Link to="/terms-of-service" className="hover:text-foreground transition-colors">Terms of Service</Link></li>
+              <li><Link to="/privacy-policy" className="hover:text-foreground transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/gdpr" className="hover:text-foreground transition-colors">GDPR</Link></li>
             </ul>
           </div>
           
