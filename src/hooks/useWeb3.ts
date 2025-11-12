@@ -97,30 +97,49 @@ export const useWeb3 = () => {
   };
 
   const buyTickets = async (quantity: number, pricePerTicket: number) => {
-    if (!provider || !account) {
-      toast.error("Veuillez connecter votre wallet");
-      return { success: false };
-    }
-
     try {
-      const signer = await provider.getSigner();
-      const totalPrice = (quantity * pricePerTicket).toString();
-      
+      if (typeof window === "undefined") {
+        toast.error("Environnement non supporté");
+        return { success: false };
+      }
+
+      const eth = (window as any).ethereum;
+      if (!eth) {
+        toast.error("MetaMask n'est pas détecté");
+        return { success: false };
+      }
+
+      // S'assurer qu'un compte est bien connecté
+      let currentAccount = account;
+      if (!currentAccount) {
+        const accounts = await eth.request({ method: "eth_requestAccounts" });
+        currentAccount = accounts?.[0] || null;
+        if (!currentAccount) {
+          toast.error("Aucun compte MetaMask détecté");
+          return { success: false };
+        }
+        setAccount(currentAccount);
+      }
+
+      const providerInstance = new BrowserProvider(eth);
+      setProvider(providerInstance);
+      const signer = await providerInstance.getSigner();
+
+      const totalPriceStr = (quantity * pricePerTicket).toFixed(6);
+
       toast.info("Confirmation de la transaction dans MetaMask...");
 
-      // Envoyer la transaction
       const tx = await signer.sendTransaction({
         to: LOTTERY_CONTRACT_ADDRESS,
-        value: parseEther(totalPrice),
+        value: parseEther(totalPriceStr),
       });
 
       toast.info("Transaction en cours...");
-      
-      // Attendre la confirmation
+
       const receipt = await tx.wait();
-      
+
       if (receipt?.status === 1) {
-        await updateBalance(account);
+        await updateBalance(currentAccount);
         toast.success(`${quantity} ticket${quantity > 1 ? 's' : ''} acheté${quantity > 1 ? 's' : ''} avec succès !`);
         return { success: true, txHash: receipt.hash };
       } else {
