@@ -65,10 +65,14 @@ export const useWeb3 = () => {
 
   const connectWallet = async () => {
     try {
+      if (typeof window === "undefined") {
+        toast.error("Erreur : environnement non supporté");
+        return null;
+      }
+
       const eth = (window as any).ethereum;
       if (!eth) {
-        toast.info("Installez MetaMask pour connecter votre wallet.");
-        window.open("https://metamask.io/download.html", "_blank");
+        toast.error("MetaMask n'est pas détecté. Veuillez installer MetaMask et recharger la page.");
         return null;
       }
 
@@ -83,7 +87,11 @@ export const useWeb3 = () => {
       toast.success(`Wallet connecté: ${account.slice(0, 6)}...${account.slice(-4)}`);
       return account;
     } catch (error: any) {
-      toast.error(error?.message || "Connexion au wallet échouée.");
+      if (error.code === 4001) {
+        toast.error("Connexion refusée par l'utilisateur");
+      } else {
+        toast.error(error?.message || "Connexion au wallet échouée.");
+      }
       return null;
     }
   };
