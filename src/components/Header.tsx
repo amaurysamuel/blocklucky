@@ -1,28 +1,10 @@
-import { useState } from "react";
 import { Wallet, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { useWeb3 } from "@/hooks/useWeb3";
+
 export const Header = () => {
-  const [account, setAccount] = useState<string | null>(null);
+  const { account, balance, connectWallet } = useWeb3();
   const shorten = (addr: string) => addr.slice(0, 6) + "..." + addr.slice(-4);
-  const handleConnect = async () => {
-    try {
-      const eth = (window as any).ethereum;
-      if (!eth) {
-        toast.info("Installez MetaMask pour connecter votre wallet.");
-        window.open("https://metamask.io/download.html", "_blank");
-        return;
-      }
-      const accounts: string[] = await eth.request({ method: "eth_requestAccounts" });
-      const acc = accounts?.[0];
-      if (acc) {
-        setAccount(acc);
-        toast.success(`Wallet connecté: ${shorten(acc)}`);
-      }
-    } catch (err: any) {
-      toast.error(err?.message || "Connexion au wallet échouée.");
-    }
-  };
   return (
     <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
@@ -39,10 +21,18 @@ export const Header = () => {
             </div>
           </div>
           
-          <Button variant="hero" size="lg" className="gap-2" onClick={handleConnect}>
-            <Wallet className="w-4 h-4" />
-            {account ? `${shorten(account)}` : "Connect Wallet"}
-          </Button>
+          <div className="flex items-center gap-3">
+            {account && (
+              <div className="text-right hidden sm:block">
+                <div className="text-xs text-muted-foreground">Balance</div>
+                <div className="text-sm font-semibold">{parseFloat(balance).toFixed(4)} ETH</div>
+              </div>
+            )}
+            <Button variant="hero" size="lg" className="gap-2" onClick={connectWallet}>
+              <Wallet className="w-4 h-4" />
+              {account ? `${shorten(account)}` : "Connect Wallet"}
+            </Button>
+          </div>
         </div>
       </div>
     </header>

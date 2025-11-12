@@ -13,7 +13,6 @@ export const ParticipationSection = () => {
 
   const handlePurchase = (quantity: number) => {
     setTicketCount(prev => prev + quantity);
-    toast.success(`${quantity} ticket${quantity > 1 ? 's' : ''} acheté${quantity > 1 ? 's' : ''} avec succès !`);
     
     // Proposer le tirage après 1 seconde
     setTimeout(() => {

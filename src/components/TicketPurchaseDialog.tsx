@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Minus, Plus, Ticket } from "lucide-react";
-import { toast } from "sonner";
+import { useWeb3 } from "@/hooks/useWeb3";
 
 interface TicketPurchaseDialogProps {
   open: boolean;
@@ -13,6 +13,8 @@ interface TicketPurchaseDialogProps {
 
 export const TicketPurchaseDialog = ({ open, onOpenChange, onPurchase }: TicketPurchaseDialogProps) => {
   const [quantity, setQuantity] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const { buyTickets } = useWeb3();
   const pricePerTicket = 0.01;
   const totalPrice = (quantity * pricePerTicket).toFixed(3);
 
@@ -24,10 +26,16 @@ export const TicketPurchaseDialog = ({ open, onOpenChange, onPurchase }: TicketP
     if (quantity < 10) setQuantity(quantity + 1);
   };
 
-  const handlePurchase = () => {
-    onPurchase(quantity);
-    onOpenChange(false);
-    setQuantity(1);
+  const handlePurchase = async () => {
+    setIsLoading(true);
+    const result = await buyTickets(quantity, pricePerTicket);
+    setIsLoading(false);
+    
+    if (result.success) {
+      onPurchase(quantity);
+      onOpenChange(false);
+      setQuantity(1);
+    }
   };
 
   return (
@@ -87,17 +95,17 @@ export const TicketPurchaseDialog = ({ open, onOpenChange, onPurchase }: TicketP
           </div>
 
           <div className="text-xs text-muted-foreground bg-accent/10 p-3 rounded-lg">
-            ⚠️ Simulation : aucun ETH réel ne sera débité. Cette démo simule l'achat de tickets.
+            💳 Une transaction MetaMask sera créée pour débiter {totalPrice} ETH de votre wallet.
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
             Annuler
           </Button>
-          <Button variant="gold" onClick={handlePurchase} className="gap-2">
+          <Button variant="gold" onClick={handlePurchase} className="gap-2" disabled={isLoading}>
             <Ticket className="w-4 h-4" />
-            Confirmer l'achat
+            {isLoading ? "Transaction en cours..." : "Confirmer l'achat"}
           </Button>
         </DialogFooter>
       </DialogContent>
