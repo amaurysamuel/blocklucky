@@ -1,9 +1,15 @@
-import { Wallet, Sparkles } from "lucide-react";
+import { Wallet, Sparkles, LogOut, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useWeb3 } from "@/hooks/useWeb3";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Header = () => {
-  const { account, balance, connectWallet } = useWeb3();
+  const { account, balance, connectWallet, disconnectWallet, switchAccount } = useWeb3();
   const shorten = (addr: string) => addr.slice(0, 6) + "..." + addr.slice(-4);
   return (
     <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
@@ -28,10 +34,31 @@ export const Header = () => {
                 <div className="text-sm font-semibold">{parseFloat(balance).toFixed(4)} ETH</div>
               </div>
             )}
-            <Button variant="hero" size="lg" className="gap-2" onClick={connectWallet}>
-              <Wallet className="w-4 h-4" />
-              {account ? `${shorten(account)}` : "Connect Wallet"}
-            </Button>
+            {account ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="hero" size="lg" className="gap-2">
+                    <Wallet className="w-4 h-4" />
+                    {shorten(account)}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={switchAccount}>
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Changer de compte
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={disconnectWallet}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Déconnexion
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button variant="hero" size="lg" className="gap-2" onClick={connectWallet}>
+                <Wallet className="w-4 h-4" />
+                Connect Wallet
+              </Button>
+            )}
           </div>
         </div>
       </div>

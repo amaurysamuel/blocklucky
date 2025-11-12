@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { BrowserProvider, Contract, parseEther, formatEther } from "ethers";
 import { toast } from "sonner";
 
-// Adresse du contrat de loterie (à remplacer par votre contrat déployé)
-const LOTTERY_CONTRACT_ADDRESS = "0x0000000000000000000000000000000000000000";
+// Adresse du contrat de loterie
+const LOTTERY_CONTRACT_ADDRESS = "0xd9145CCE52D386f254917e481eB44e9943F39138";
 
 export const useWeb3 = () => {
   const [account, setAccount] = useState<string | null>(null);
@@ -129,10 +129,48 @@ export const useWeb3 = () => {
     }
   };
 
+  const disconnectWallet = () => {
+    setAccount(null);
+    setProvider(null);
+    setBalance("0");
+    toast.info("Wallet déconnecté");
+  };
+
+  const switchAccount = async () => {
+    try {
+      const eth = (window as any).ethereum;
+      if (!eth) {
+        toast.error("MetaMask n'est pas installé");
+        return;
+      }
+
+      // Cette méthode ouvre MetaMask pour changer de compte
+      const accounts = await eth.request({ 
+        method: "wallet_requestPermissions",
+        params: [{ eth_accounts: {} }]
+      }).then(() => eth.request({ method: "eth_requestAccounts" }));
+      
+      if (accounts.length > 0) {
+        const account = accounts[0];
+        setAccount(account);
+        const provider = new BrowserProvider(eth);
+        setProvider(provider);
+        await updateBalance(account);
+        toast.success(`Compte changé: ${account.slice(0, 6)}...${account.slice(-4)}`);
+      }
+    } catch (error: any) {
+      if (error.code !== 4001) {
+        toast.error("Erreur lors du changement de compte");
+      }
+    }
+  };
+
   return {
     account,
     balance,
     connectWallet,
+    disconnectWallet,
+    switchAccount,
     buyTickets,
     updateBalance: () => account && updateBalance(account),
   };
